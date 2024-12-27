@@ -2,8 +2,9 @@ from ultralytics import YOLO
 
 # Load a COCO-pretrained YOLO11n model
 
+
 if __name__ == '__main__':
-    model = YOLO("./cfg/models/11/yolo11-ADown.yaml")
+    model = YOLO("yolo11n.yaml")
     # model.load('yolov8n.pt') # loading pretrain weights
     imgsz = 544
     epoch = 200
@@ -12,7 +13,8 @@ if __name__ == '__main__':
     lr0 = 0.001
     patience = 15
     weight_decay = 0.0005
-    workers = 6
+    workers = 4
+
 
 
     model.train(data=r'mydataset-for31.yaml',
@@ -22,7 +24,7 @@ if __name__ == '__main__':
                 lr0=lr0,
                 batch=batch,
                 optimizer=optimizer,  # 优化器设置
-                workers=workers,
+                workers = workers,
                 patience=patience,
                 #dropout=dropout,
                 weight_decay=weight_decay,
@@ -37,5 +39,5 @@ if __name__ == '__main__':
                 amp=True,  # 如果出现训练损失为Nan可以关闭amp
                 # half=True,
                 project='runs/detect',
-                name=f'yolov11-ADown_for31V2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wk{workers}_wd{weight_decay}_sz{imgsz}_',
+                name=f'yolov11n_for31weatherV2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wk{workers}_wd{weight_decay}_sz{imgsz}_',
                 )
