@@ -3,7 +3,7 @@ from ultralytics import YOLO
 # Load a COCO-pretrained YOLO11n model
 
 if __name__ == '__main__':
-    model = YOLO("./cfg/models/11/yolo11-ADown.yaml")
+    model = YOLO("./cfg/models/11/yolo11-WTConv.yaml")
     # model.load('yolov8n.pt') # loading pretrain weights
     imgsz = 544
     epoch = 200
@@ -12,7 +12,7 @@ if __name__ == '__main__':
     lr0 = 0.001
     patience = 15
     weight_decay = 0.0005
-    workers = 6
+    workers = 4
 
 
     model.train(data=r'mydataset-for31.yaml',
@@ -37,5 +37,5 @@ if __name__ == '__main__':
                 amp=True,  # 如果出现训练损失为Nan可以关闭amp
                 # half=True,
                 project='runs/detect',
-                name=f'yolov11-ADown_for31V2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wk{workers}_wd{weight_decay}_sz{imgsz}_',
+                name=f'yolov11-WTConv_for31V2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wk{workers}_wd{weight_decay}_sz{imgsz}_',
                 )

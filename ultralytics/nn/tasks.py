@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+from .Addmodules import *
 import contextlib
 import pickle
 import re
@@ -981,7 +981,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             C3k2,
-            RepNCSPELAN4,
             ELAN1,
             ADown,
             AConv,
@@ -997,7 +996,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             PSA,
             SCDown,
             C2fCIB,
-            ADown,
+            C3k2_MSCB1,
+            C3k2_MSCB2,
+            C3k2_WTConv,
+            RepNCSPELAN4_low,
+            RepNCSPELAN4_high
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
@@ -1024,6 +1027,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C2fPSA,
                 C2fCIB,
                 C2PSA,
+                C3k2_MSCB1,
+                C3k2_MSCB2,
+                C3k2_WTConv
             }:
                 args.insert(2, n)  # number of repeats
                 n = 1
