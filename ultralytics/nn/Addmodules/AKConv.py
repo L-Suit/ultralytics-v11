@@ -1,14 +1,14 @@
-import torch.nn as nn
-import torch
-from einops import rearrange
 import math
+import torch
+import torch.nn as nn
+from einops import rearrange
 
-__all__ = ['AKConv', 'C2f_AKConv']
+__all__ = ['AKConv', 'C3k2_AKConv']
+
 
 class AKConv(nn.Module):
-    def __init__(self, inc, outc, num_param, stride=1, bias=None):
+    def __init__(self, inc, outc, num_param=2, stride=1, bias=None):
         super(AKConv, self).__init__()
-
         self.num_param = num_param
         self.stride = stride
         self.conv = nn.Sequential(nn.Conv2d(inc, outc, kernel_size=(num_param, 1), stride=(num_param, 1), bias=bias),
@@ -76,13 +76,13 @@ class AKConv(nn.Module):
         mod_number = self.num_param % base_int
         p_n_x, p_n_y = torch.meshgrid(
             torch.arange(0, row_number),
-            torch.arange(0, base_int), indexing='xy')
+            torch.arange(0, base_int))
         p_n_x = torch.flatten(p_n_x)
         p_n_y = torch.flatten(p_n_y)
         if mod_number > 0:
             mod_p_n_x, mod_p_n_y = torch.meshgrid(
                 torch.arange(row_number, row_number + 1),
-                torch.arange(0, mod_number), indexing='xy')
+                torch.arange(0, mod_number))
 
             mod_p_n_x = torch.flatten(mod_p_n_x)
             mod_p_n_y = torch.flatten(mod_p_n_y)
@@ -95,7 +95,7 @@ class AKConv(nn.Module):
     def _get_p_0(self, h, w, N, dtype):
         p_0_x, p_0_y = torch.meshgrid(
             torch.arange(0, h * self.stride, self.stride),
-            torch.arange(0, w * self.stride, self.stride), indexing='xy')
+            torch.arange(0, w * self.stride, self.stride))
 
         p_0_x = torch.flatten(p_0_x).view(1, 1, h, w).repeat(1, N, 1, 1)
         p_0_y = torch.flatten(p_0_y).view(1, 1, h, w).repeat(1, N, 1, 1)
@@ -123,11 +123,7 @@ class AKConv(nn.Module):
         # (b, h, w, N)
         index = q[..., :N] * padded_w + q[..., N:]  # offset_x*w + offset_y
         # (b, c, h*w*N)
-
         index = index.contiguous().unsqueeze(dim=1).expand(-1, c, -1, -1, -1).contiguous().view(b, c, -1)
-
-        # 根据实际情况调整
-        index = index.clamp(min=0, max=x.shape[-1] - 1)
 
         x_offset = x.gather(dim=-1, index=index).contiguous().view(b, c, h, w, N)
 
@@ -145,6 +141,21 @@ class AKConv(nn.Module):
 
         x_offset = rearrange(x_offset, 'b c h w n -> b c (h n) w')
         return x_offset
+
+
+class Bottleneck(nn.Module):
+    # Standard bottleneck with DCN
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, groups, kernels, expand
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = AKConv(c_, c2, 3)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
+
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     """Pad to 'same' shape outputs."""
@@ -175,43 +186,20 @@ class Conv(nn.Module):
         return self.act(self.conv(x))
 
 
-class Bottleneck(nn.Module):
-    """Standard bottleneck."""
-
-    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
-        """Initializes a bottleneck module with given input/output channels, shortcut option, group, kernels, and
-        expansion.
-        """
-        super().__init__()
-        c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c_, k[0], 1)
-        self.cv2 = AKConv(c_, c2, k[1], 1, g)
-        self.add = shortcut and c1 == c2
-
-    def forward(self, x):
-        """'forward()' applies the YOLO FPN to input data."""
-        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
-
-
-class C2f_AKConv(nn.Module):
+class C2f(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
-        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
-        expansion.
-        """
+        """Initializes a CSP bottleneck with 2 convolutions and n Bottleneck blocks for faster processing."""
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
-        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=(3, 3), e=1.0) for _ in range(n))
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
 
     def forward(self, x):
         """Forward pass through C2f layer."""
-        x = self.cv1(x)
-        x = x.chunk(2, 1)
-        y = list(x)
-        # y = list(self.cv1(x).chunk(2, 1))
+        y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
 
@@ -220,3 +208,54 @@ class C2f_AKConv(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+
+
+class C3(nn.Module):
+    """CSP Bottleneck with 3 convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize the CSP Bottleneck with given channels, number, shortcut, groups, and expansion values."""
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c1, c_, 1, 1)
+        self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=((1, 1), (3, 3)), e=1.0) for _ in range(n)))
+
+    def forward(self, x):
+        """Forward pass through the CSP bottleneck with 2 convolutions."""
+        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+
+
+class C3k(C3):
+    """C3k is a CSP bottleneck module with customizable kernel sizes for feature extraction in neural networks."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, k=3):
+        """Initializes the C3k module with specified channels, number of layers, and configurations."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)  # hidden channels
+        # self.m = nn.Sequential(*(RepBottleneck(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n)))
+        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n)))
+
+
+class C3k2_AKConv(C2f):
+    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
+
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True):
+        """Initializes the C3k2 module, a faster CSP Bottleneck with 2 convolutions and optional C3k blocks."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.m = nn.ModuleList(
+            C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+        )
+
+
+if __name__ == "__main__":
+    # Generating Sample image
+    image_size = (1, 64, 224, 224)
+    image = torch.rand(*image_size)
+
+    # Model
+    model = C3k2_AKConv(64, 64)
+
+    out = model(image)
+    print(out.size())

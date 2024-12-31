@@ -122,3 +122,5 @@ from .MLLABlock import *
 from .MSCB import *
 from .WTConv import *
 from .RepNCSPELAN4 import *
+from .LAE import *
+from .AKConv import *
