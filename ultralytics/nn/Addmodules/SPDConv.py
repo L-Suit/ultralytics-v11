@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-
 __all__ = ['SPDConv']
+
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     """Pad to 'same' shape outputs."""
@@ -11,7 +11,6 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
     if p is None:
         p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
     return p
-
 
 
 class SPDConv(nn.Module):
@@ -35,5 +34,3 @@ class SPDConv(nn.Module):
         """Perform transposed convolution of 2D data."""
         x = torch.cat([x[..., ::2, ::2], x[..., 1::2, ::2], x[..., ::2, 1::2], x[..., 1::2, 1::2]], 1)
         return self.act(self.conv(x))
-
-

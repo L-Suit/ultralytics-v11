@@ -108,7 +108,6 @@
 # from .MobileViTv2 import *
 # from .HATHead import *
 # from .SPDEMA import *
-# from .DynamicConv import *
 # from .HWD import *
 # from .C2fGhostModuleDynamicConv import *
 # from .MobileNetV4 import *
@@ -124,3 +123,5 @@ from .WTConv import *
 from .RepNCSPELAN4 import *
 from .LAE import *
 from .AKConv import *
+from .DynamicConv import *
+from .SPDConv import *

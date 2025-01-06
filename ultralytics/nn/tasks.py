@@ -1001,7 +1001,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C3k2_WTConv,
             RepNCSPELAN4_low,
             RepNCSPELAN4_high,
-            AKConv,C3k2_AKConv
+            AKConv,C3k2_AKConv,
+            DynamicConv,C3k2_DynamicConv,
+            SPDConv
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
@@ -1030,7 +1032,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C2PSA,
                 C3k2_MSCB1,
                 C3k2_MSCB2,
-                C3k2_WTConv,C3k2_AKConv
+                C3k2_WTConv,C3k2_AKConv,
+                C3k2_DynamicConv
             }:
                 args.insert(2, n)  # number of repeats
                 n = 1
