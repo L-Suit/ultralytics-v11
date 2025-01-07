@@ -1003,7 +1003,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             RepNCSPELAN4_high,
             AKConv,C3k2_AKConv,
             DynamicConv,C3k2_DynamicConv,
-            SPDConv
+            SPDConv,
+            C2PSA_CAA,
+            ODConv2d,C3k2_ODConv
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
@@ -1033,7 +1035,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C3k2_MSCB1,
                 C3k2_MSCB2,
                 C3k2_WTConv,C3k2_AKConv,
-                C3k2_DynamicConv
+                C3k2_DynamicConv,
+                C3k2_ODConv
             }:
                 args.insert(2, n)  # number of repeats
                 n = 1
@@ -1041,7 +1044,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 legacy = False
                 if scale in "mlx":
                     args[3] = True
-        elif m in {LAE}:
+        # 注意力机制
+        elif m in {LAE,CAA}:
             c2 = ch[f]
             args = [c2, *args]
         elif m is AIFI:
