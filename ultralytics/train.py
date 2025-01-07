@@ -36,6 +36,6 @@ if __name__ == '__main__':
                 resume=False, # 如过想续训,此处设置true，model不用.yaml改为last.pt的位置
                 amp=True,  # 如果出现训练损失为Nan可以关闭amp
                 # half=True,
-                project='runs/detect',
+                project='/root/autodl-tmp/detect',
                 name=f'yolov11-ADown+WTConv_for31V2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wd{weight_decay}_sz{imgsz}_',
                 )
