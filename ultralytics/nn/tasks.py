@@ -1045,7 +1045,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 if scale in "mlx":
                     args[3] = True
         # 注意力机制
-        elif m in {LAE,CAA}:
+        elif m in {LAE,CAA,CPA_arch}:
             c2 = ch[f]
             args = [c2, *args]
         elif m is AIFI:

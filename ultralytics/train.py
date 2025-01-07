@@ -3,7 +3,7 @@ from ultralytics import YOLO
 # Load a COCO-pretrained YOLO11n model
 
 if __name__ == '__main__':
-    model = YOLO("./cfg/models/11/yolo11-ADown+WTConv.yaml")
+    model = YOLO("./cfg/models/11/yolo11-WTConv.yaml")
     # model.load('yolov8n.pt') # loading pretrain weights
     imgsz = 544
     epoch = 200
