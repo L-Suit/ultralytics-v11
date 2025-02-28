@@ -1,13 +1,14 @@
-from ultralytics import YOLO
+from ultralytics import YOLO, RTDETR
 
 # Load a COCO-pretrained YOLO11n model
 
 if __name__ == '__main__':
-    model = YOLO("./cfg/models/11/yolo11-CPA+ADown.yaml")
-    # model.load('yolov8n.pt') # loading pretrain weights
+    #model = YOLO("./cfg/models/11/yolo11-ADown.yaml")
+    #model = YOLO("/root/ultralytics-v11/ultralytics/runs/detect/yolov11-ADown_for31V2_epo200_lr0.001_16_AdamW_wk6_wd0.0005_sz544_/weights/last.pt")
+    model = RTDETR(r'./cfg/models/rt-detr/rtdetr-resnet50.yaml')
     imgsz = 544
     epoch = 200
-    batch = 16
+    batch = 8
     optimizer = 'AdamW'
     lr0 = 0.001
     patience = 15
@@ -28,7 +29,7 @@ if __name__ == '__main__':
                 weight_decay=weight_decay,
 
                 mosaic=0,
-                pretrained=False,
+                pretrained=True,
                 single_cls=False,  # 是否是单类别检测
                 close_mosaic=0,
                 device='0',
@@ -37,5 +38,5 @@ if __name__ == '__main__':
                 amp=True,  # 如果出现训练损失为Nan可以关闭amp
                 # half=True,
                 project='/root/autodl-tmp/detect',
-                name=f'yolov11-CPA+ADown_for31V2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wd{weight_decay}_sz{imgsz}_',
+                name=f'rtdetr_for31V2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wd{weight_decay}_sz{imgsz}_',
                 )
