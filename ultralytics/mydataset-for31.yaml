@@ -11,16 +11,16 @@
 #val: val # val images (relative to 'path') 4 images
 
 ###### 服务器数据集目录 ######
-path: C:\ProgramData\lsh-dataset\for31-weatherv2\images
-train: train # train images (relative to 'path') 4 images
-val: val # val images (relative to 'path') 4 image
-test: # test images (optional)
+#path: C:\ProgramData\lsh-dataset\for31-weatherv2\images
+#train: train # train images (relative to 'path') 4 images
+#val: val # val images (relative to 'path') 4 image
+#test: # test images (optional)
 
 ###### Autodl平台数据集目录 ######
 #path: /root/dataset/for31/yolo/images
-#path: /root/dataset/for31-weatherv2/images
-#train: train # train images (relative to 'path') 4 images
-#val: val # val images (relative to 'path') 4 images
+path: /root/dataset/for31-weatherv2/images
+train: train # train images (relative to 'path') 4 images
+val: val # val images (relative to 'path') 4 images
 
 
 

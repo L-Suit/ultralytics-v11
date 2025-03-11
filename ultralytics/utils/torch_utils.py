@@ -364,7 +364,7 @@ def model_info_for_loggers(trainer):
     results["model/speed_PyTorch(ms)"] = round(trainer.validator.speed["inference"], 3)
     return results
 
-def get_flops(model, imgsz=640):
+def get_flops(model, imgsz=544):
     """Return a YOLO model's FLOPs."""
     try:
         model = de_parallel(model)

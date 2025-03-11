@@ -3,12 +3,12 @@ from ultralytics import YOLO, RTDETR
 # Load a COCO-pretrained YOLO11n model
 
 if __name__ == '__main__':
-    model = YOLO("./cfg/models/11/yolo11-CPA+ADown+WTConv.yaml")
+    model = YOLO("./cfg/models/11/yolo11-ADown+WTConv.yaml")
     # model.load('yolov8n.pt') # loading pretrain weights
     #model = RTDETR(r'./cfg/models/rt-detr/rtdetr-l.yaml')
     imgsz = 544
     epoch = 200
-    batch = 16
+    batch = 8
     optimizer = 'AdamW'
     lr0 = 0.001
     patience = 0
@@ -37,6 +37,7 @@ if __name__ == '__main__':
                 resume=False, # 如过想续训,此处设置true，model不用.yaml改为last.pt的位置
                 amp=True,  # 如果出现训练损失为Nan可以关闭amp
                 # half=True,
-                project='runs/detect',
-                name=f'yolo11n-CPA+ADown+WTConv_for31V2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wd{weight_decay}_sz{imgsz}_',
+                #project='runs/detect',
+                project='/root/autodl-tmp/detect',
+                name=f'yolo11n-test-ADown+WTConv_for31V2_epo{epoch}_lr{lr0}_{batch}_{optimizer}_wd{weight_decay}_sz{imgsz}_',
                 )
